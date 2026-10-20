@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deal Pursuit Framework | Interactive Complexity Model</title>
+<style>
+  :root {
+    --navy: #0a2540;
+    --navy-light: #1a3a5c;
+    --teal: #00b4a6;
+    --teal-dark: #008f84;
+    --teal-light: #e6f7f6;
+    --gray: #f4f6f8;
+    --text: #1a1a1a;
+    --muted: #5a6a7a;
+    --card-shadow: 0 4px 20px rgba(10, 37, 64, 0.08);
+    --border: #e1e8ed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f6 100%);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  header {
+    background: var(--navy);
+    color: white;
+    padding: 2.5rem 2rem 1.5rem;
+    text-align: center;
+  }
+  header h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.5rem;
+  }
+  header p {
+    font-size: 1.15rem;
+    opacity: 0.9;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  .size-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+  .size-btn {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.4rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    min-width: 180px;
+    box-shadow: var(--card-shadow);
+  }
+  .size-btn:hover {
+    border-color: var(--teal);
+    transform: translateY(-2px);
+  }
+  .size-btn.active {
+    background: var(--navy);
+    color: white;
+    border-color: var(--navy);
+  }
+  .size-btn .range {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .size-btn .label {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-top: 0.25rem;
+  }
+  .overview {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--card-shadow);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+  .overview-item h4 {
+    color: var(--muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.4rem;
+  }
+  .overview-item p {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    gap: 1.5rem;
+  }
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .sidebar {
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: var(--card-shadow);
+  }
+  .sidebar h3 {
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--teal);
+  }
+  .sidebar ul {
+    list-style: none;
+  }
+  .sidebar li {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.92rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .sidebar li:last-child { border-bottom: none; }
+  .sidebar li::before {
+    content: "•";
+    color: var(--teal);
+    font-weight: bold;
+  }
+  .stages-section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+  }
+  .stages-section h2 {
+    font-size: 1.4rem;
+    color: var(--navy);
+    margin-bottom: 1.25rem;
+  }
+  .stages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+  }
+  .stage-card {
+    background: var(--gray);
+    border-radius: 12px;
+    padding: 1rem;
+    width: 200px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+  .stage-card:hover {
+    border-color: var(--teal);
+    transform: translateY(-3px);
+  }
+  .stage-card.expanded {
+    width: 100%;
+    max-width: 700px;
+    background: white;
+    border-color: var(--teal);
+  }
+  .stage-number {
+    background: var(--teal);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 0.6rem;
+  }
+  .stage-card h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+    color: var(--navy);
+  }
+  .stage-summary {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .stage-details {
+    display: none;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .stage-card.expanded .stage-details { display: block; }
+  .stage-details strong { color: var(--navy); }
+  .stage-details ul { margin: 0.3rem 0 0.6rem 1.1rem; }
+  .arrow {
+    align-self: center;
+    color: var(--teal);
+    font-size: 1.4rem;
+    font-weight: bold;
+  }
+  .footer-note {
+    text-align: center;
+    margin-top: 2.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Deal Pursuit Framework</h1>
+  <p>Interactive complexity model — select a deal size range to see how requirements, stakeholders, process rigor, and artifacts scale up to the full $1B pursuit. Expand any phase to view detailed SOPs and advancement requirements.</p>
+</header>
+
+<div class="container">
+  <div class="size-selector" id="sizeSelector"></div>
+
+  <div class="overview" id="overview"></div>
+
+  <div class="layout">
+    <div class="sidebar" id="leftSidebar"></div>
+    <div class="stages-section">
+      <h2>Pursuit Process Flow</h2>
+      <div class="stages" id="stages"></div>
+    </div>
+    <div class="sidebar" id="rightSidebar"></div>
+  </div>
+
+  <p class="footer-note">
+    Deal Pursuit Framework — example for educational and planning purposes. Adapt stage names, SOPs, artifacts, and rigor to your specific opportunity, industry, and sales motion.<br>
+    Complexity increases with deal size: more stakeholders, longer cycles, heavier qualification (MEDDIC → MEDDPICC+), formal paper process, and executive sponsorship.
+  </p>
+</div>
+
+<script>
+const dealTiers = [
+  {
+    id: "mid",
+    range: "$50K – $250K",
+    label: "Mid-Market",
+    cycle: "1–4 months",
+    stakeholders: "3–8",
+    framework: "MEDDIC",
+    team: "AE + SE",
+    winRate: "25–35%",
+    stages: [
+      { num: 1, name: "Targeting & Entry", summary: "ICP fit, initial outreach", activities: ["Account scoring", "Multi-channel outreach", "First contact"], exit: "Meeting scheduled with economic influencer" },
+      { num: 2, name: "Discovery", summary: "Pain & metrics", activities: ["Quantify business impact", "Map 3–5 stakeholders", "Identify champion"], exit: "Clear metrics + champion identified" },
+      { num: 3, name: "Solution & Demo", summary: "Value presentation", activities: ["Tailored demo", "ROI outline", "Technical validation"], exit: "Verbal interest + next step agreed" },
+      { num: 4, name: "Proposal & Negotiation", summary: "Commercial terms", activities: ["Proposal delivery", "Pricing discussion", "Objections handled"], exit: "Term sheet or verbal yes" },
+      { num: 5, name: "Close", summary: "Contract & signature", activities: ["Light paper process", "Final approvals", "Handoff"], exit: "Signed contract" }
+    ],
+    left: { title: "Buying Committee", items: ["Economic Buyer (often VP/Director)", "Champion", "Technical Buyer / User", "Procurement (light)"] },
+    right: { title: "Critical Artifacts", items: ["Discovery notes", "Simple ROI model", "Proposal", "Basic stakeholder map"] },
+    risks: ["Single-threaded", "No clear metrics", "Champion leaves"]
+  },
+  {
+    id: "enterprise",
+    range: "$250K – $1M",
+    label: "Enterprise",
+    cycle: "3–9 months",
+    stakeholders: "6–12",
+    framework: "MEDDIC / early MEDDPICC",
+    team: "AE, SE, Manager support",
+    winRate: "20–30%",
+    stages: [
+      { num: 1, name: "Strategic Targeting", summary: "Account selection", activities: ["ICP + trigger events", "Executive air cover", "Multi-thread plan"], exit: "Qualified target + sponsor path" },
+      { num: 2, name: "Multi-Threaded Discovery", summary: "Deep qualification", activities: ["6–10 stakeholders engaged", "Metrics & pain quantified", "Decision process mapped"], exit: "Champion + economic buyer access" },
+      { num: 3, name: "Solution Design", summary: "Architecture & value", activities: ["Joint solutioning", "Competitive differentiation", "Success criteria"], exit: "Agreed solution approach" },
+      { num: 4, name: "Validation / Pilot", summary: "Proof of value", activities: ["Controlled pilot", "Technical proof", "Security review start"], exit: "Success criteria met" },
+      { num: 5, name: "Proposal & Negotiation", summary: "Commercial structuring", activities: ["Full business case", "Pricing architecture", "Risk share discussion"], exit: "Term sheet" },
+      { num: 6, name: "Procurement & Close", summary: "Paper process", activities: ["MSA / redlines", "Security & legal", "Final signatures"], exit: "Signed + transition" }
+    ],
+    left: { title: "Buying Committee Roles", items: ["Economic Buyer", "Champion", "Technical Buyer", "Security / Compliance", "Procurement", "End Users"] },
+    right: { title: "Critical Artifacts", items: ["Mutual Action Plan (basic)", "Stakeholder map", "ROI / TCO model", "Competitive battle card", "Pilot SOW"] },
+    risks: ["Paper process delays", "Incomplete multi-threading", "Status quo / do nothing"]
+  },
+  {
+    id: "strategic",
+    range: "$1M – $10M",
+    label: "Strategic",
+    cycle: "6–12 months",
+    stakeholders: "10–20",
+    framework: "MEDDPICC",
+    team: "Pursuit Lead, AE, SE/Architect, Executive Sponsor",
+    winRate: "18–28%",
+    stages: [
+      { num: 1, name: "Strategic Targeting", summary: "Executive alignment", activities: ["Account strategy", "Trigger events", "Sponsor mapping"], exit: "Executive sponsor path identified" },
+      { num: 2, name: "Multi-Threaded Entry & Discovery", summary: "Full qualification", activities: ["10–15 stakeholders", "Pain & metrics locked", "Decision + paper process mapped"], exit: "MEDDPICC score ≥70%" },
+      { num: 3, name: "Solution Co-Creation", summary: "Business case", activities: ["Joint architecture", "3-year TCO/ROI", "Competitive differentiation"], exit: "Executive-endorsed business case" },
+      { num: 4, name: "Validation & Pilot", summary: "Controlled proof", activities: ["Success metrics defined", "Technical + security validation", "Referenceable outcomes"], exit: "Pilot success criteria met" },
+      { num: 5, name: "Commercial Negotiation", summary: "Structuring", activities: ["Multi-year terms", "Risk share", "Executive sessions"], exit: "Term sheet + verbal commitment" },
+      { num: 6, name: "Procurement • Legal • Close", summary: "Approvals", activities: ["Full paper process", "Redlines", "Board / approval gates"], exit: "Signed contract + delivery plan" }
+    ],
+    left: { title: "Buying Committee + Power Mapping", items: ["Economic Buyer (C-level)", "Champion(s)", "Technical Buyer", "Security/Compliance", "Procurement", "Finance", "End Users", "Potential Blockers"] },
+    right: { title: "Critical Artifacts", items: ["Full Mutual Action Plan", "Decision Memo", "Stakeholder Map (Blue Sheet)", "5-year ROI model", "Competitive Battle Card", "Risk Register"] },
+    risks: ["Champion attrition", "Scope creep", "Budget freeze", "Incomplete paper process"]
+  },
+  {
+    id: "mega",
+    range: "$10M – $100M",
+    label: "Mega-Deal",
+    cycle: "9–18 months",
+    stakeholders: "15–30",
+    framework: "MEDDPICC+",
+    team: "Full Pursuit Team + Executive Sponsor + Delivery Lead",
+    winRate: "15–25%",
+    stages: [
+      { num: 1, name: "Strategic Targeting", summary: "Board-level visibility", activities: ["Strategic account plan", "Trigger events", "Executive air cover"], exit: "Qualified with sponsor" },
+      { num: 2, name: "Multi-Threaded Entry & Discovery", summary: "Deep power mapping", activities: ["15–25 stakeholders", "Full MEDDPICC", "Current-state mapping"], exit: "Scorecard ≥80% + mutual criteria" },
+      { num: 3, name: "Solution Co-Creation & Business Case", summary: "Joint value creation", activities: ["Architecture workshops", "Multi-year TCO/ROI", "Pilot design"], exit: "Executive-endorsed case + pilot SOW" },
+      { num: 4, name: "Validation & Pilot", summary: "Referenceable proof", activities: ["Controlled pilot", "Security review", "Technical proof"], exit: "Success criteria met" },
+      { num: 5, name: "Commercial Negotiation & Structuring", summary: "Complex commercial", activities: ["Pricing architecture", "Risk share", "Multi-year terms"], exit: "Term sheet + economic buyer commitment" },
+      { num: 6, name: "Procurement • Legal • Close", summary: "Formal gates", activities: ["Paper process execution", "Redlines", "Approval gates", "Transition plan"], exit: "Signed + delivery handoff" }
+    ],
+    left: { title: "Buying Committee Roles", items: ["Economic Buyer (CFO/CEO)", "Champion(s)", "Technical Buyer", "Security/Compliance", "Procurement", "Legal", "Finance", "End Users", "Blockers"] },
+    right: { title: "Critical Artifacts", items: ["Mutual Action Plan (MAP)", "Decision Memo", "Full Stakeholder Map", "5-Year ROI Model", "Competitive Battle Card", "Risk Register", "Pilot Success Criteria"] },
+    risks: ["Single-threading", "Do Nothing", "Scope creep", "Champion attrition", "Budget freeze"]
+  },
+  {
+    id: "billion",
+    range: "$100M – $1B+",
+    label: "Billion-Dollar Pursuit",
+    cycle: "12–24 months",
+    stakeholders: "15–40+",
+    framework: "MEDDPICC+ (full rigor)",
+    team: "Pursuit Lead, AE, SE/Architect, Executive Sponsor, Legal, Pricing, Delivery Lead",
+    winRate: "35–45% (with process)",
+    stages: [
+      {
+        num: 1, name: "Strategic Targeting",
+        summary: "ICP + executive air cover",
+        sops: [
+          "Complete formal account scoring using ICP criteria (revenue, industry, tech stack, growth signals, strategic fit).",
+          "Document trigger events (leadership change, funding, expansion, competitive displacement, regulatory shift).",
+          "Build initial executive air-cover map (who can sponsor or block at C-level).",
+          "Run competitive landscape review and preliminary positioning.",
+          "Identify 2–3 potential entry points and multi-thread plan.",
+          "Secure internal pursuit approval and assign core team."
+        ],
+        requirements: [
+          "Account score ≥ threshold for strategic pursuit",
+          "At least one named executive sponsor path identified",
+          "Initial multi-thread plan documented",
+          "Competitive baseline completed",
+          "Internal go/no-go decision recorded"
+        ]
+      },
+      {
+        num: 2, name: "Multi-Threaded Entry & Discovery",
+        summary: "Full stakeholder engagement",
+        sops: [
+          "Execute multi-threaded outreach across 6–12 initial stakeholders.",
+          "Conduct structured discovery sessions focused on business impact, not features.",
+          "Quantify pain in buyer’s language (cost, risk, revenue, time).",
+          "Map current-state processes and technology.",
+          "Identify and validate at least one true Champion.",
+          "Begin Decision Process and Paper Process discovery.",
+          "Log all interactions and update stakeholder map weekly."
+        ],
+        requirements: [
+          "Verified economic impact quantified",
+          "Champion secured and tested (can arrange executive meeting)",
+          "Minimum 6 active stakeholders engaged",
+          "Initial Decision Process documented",
+          "Mutual interest confirmed for next stage"
+        ]
+      },
+      {
+        num: 3, name: "MEDDPICC+ Qualification & Power Mapping",
+        summary: "Buying committee locked",
+        sops: [
+          "Complete full buying committee map (15–40+ people) with roles, influence, and attitude.",
+          "Score all MEDDPICC+ elements with evidence.",
+          "Identify Economic Buyer and secure access path.",
+          "Document Decision Criteria, Decision Process, and Paper Process in detail.",
+          "Map Competition including status quo / do-nothing.",
+          "Build Power/Interest grid and prioritize engagement.",
+          "Create or update Mutual Action Plan draft."
+        ],
+        requirements: [
+          "MEDDPICC+ scorecard ≥ 80%",
+          "Economic Buyer identified with access strategy",
+          "Full stakeholder map (Blue Sheet equivalent) complete",
+          "Mutual success criteria defined and agreed",
+          "Paper Process owners and timeline outlined"
+        ]
+      },
+      {
+        num: 4, name: "Solution Co-Creation & Business Case",
+        summary: "Joint architecture & ROI",
+        sops: [
+          "Facilitate joint architecture and solution workshops with customer technical and business teams.",
+          "Develop 3–5 year TCO/ROI model using customer’s metrics and assumptions.",
+          "Document competitive differentiation and win themes.",
+          "Design pilot scope, success metrics, and SOW.",
+          "Align on implementation approach and risk mitigation.",
+          "Secure executive review and endorsement of business case.",
+          "Update Mutual Action Plan with dated milestones."
+        ],
+        requirements: [
+          "Executive-endorsed business case completed",
+          "Pilot SOW and success criteria agreed",
+          "TCO/ROI model validated by customer finance or economic buyer",
+          "Competitive win themes documented",
+          "Mutual Action Plan active with owners and dates"
+        ]
+      },
+      {
+        num: 5, name: "Validation & Pilot",
+        summary: "Controlled proof",
+        sops: [
+          "Execute controlled pilot against pre-agreed success criteria.",
+          "Conduct technical proof and integration testing.",
+          "Initiate security and compliance review.",
+          "Capture referenceable outcomes and customer quotes.",
+          "Hold regular pilot review meetings with stakeholders.",
+          "Document any gaps and remediation plans.",
+          "Prepare for commercial discussions in parallel."
+        ],
+        requirements: [
+          "Pilot success criteria formally met and signed off",
+          "Referenceable outcomes documented",
+          "Security review kicked off or completed",
+          "Technical validation accepted",
+          "No major unresolved technical or risk blockers"
+        ]
+      },
+      {
+        num: 6, name: "Commercial Negotiation & Structuring",
+        summary: "Complex commercial terms",
+        sops: [
+          "Develop multi-year pricing architecture and commercial structure.",
+          "Define risk-sharing or performance-based elements where appropriate.",
+          "Conduct executive alignment sessions.",
+          "Prepare and negotiate term sheet.",
+          "Align internal pricing, legal, and delivery teams.",
+          "Document all commercial assumptions and dependencies.",
+          "Secure verbal commitment from Economic Buyer."
+        ],
+        requirements: [
+          "Term sheet agreed in principle",
+          "Verbal commitment obtained from Economic Buyer",
+          "Commercial risks and mitigations documented",
+          "Internal approvals for pricing and terms secured",
+          "Clear path to final contract identified"
+        ]
+      },
+      {
+        num: 7, name: "Procurement • Legal • Close",
+        summary: "Final gates & signature",
+        sops: [
+          "Execute full paper process (MSA, SOW, security, DPA, etc.).",
+          "Manage redlines with legal and procurement.",
+          "Complete all approval gates (board, finance, security).",
+          "Finalize transition plan to delivery/implementation team.",
+          "Conduct final executive confirmation.",
+          "Secure signatures and issue order.",
+          "Complete internal win documentation and lessons learned."
+        ],
+        requirements: [
+          "All contractual documents fully executed",
+          "Transition plan accepted by delivery team",
+          "No open legal, security, or compliance issues",
+          "Economic Buyer and procurement sign-off confirmed",
+          "Deal closed and recorded"
+        ]
+      }
+    ],
+    left: { title: "Buying Committee Roles", items: ["Economic Buyer (CFO/CEO)", "Champion", "Technical Buyer", "Security/Compliance", "Procurement", "End Users", "Blockers"] },
+    right: { title: "Critical Artifacts", items: ["Mutual Action Plan (MAP)", "Decision Memo", "Full Stakeholder Map (Blue Sheet)", "5-Year ROI Model", "Competitive Battle Card", "Risk Register"] },
+    risks: ["Single-threading (mitigate: multi-thread early)", "Do Nothing (quantify cost of inaction)", "Scope creep (lock success criteria)", "Champion attrition (2–3 sponsors)", "Budget freeze (link to strategic imperatives)"]
+  }
+];
+
+function renderSelector() {
+  const container = document.getElementById("sizeSelector");
+  container.innerHTML = dealTiers.map((tier, i) => `
+    <button class="size-btn ${i === dealTiers.length - 1 ? 'active' : ''}" data-id="${tier.id}" onclick="selectTier('${tier.id}')">
+      <div class="range">${tier.range}</div>
+      <div class="label">${tier.label}</div>
+    </button>
+  `).join("");
+}
+
+function selectTier(id) {
+  document.querySelectorAll(".size-btn").forEach(btn => btn.classList.remove("active"));
+  document.querySelector(`[data-id="${id}"]`).classList.add("active");
+  const tier = dealTiers.find(t => t.id === id);
+  renderTier(tier);
+}
+
+function renderTier(tier) {
+  document.getElementById("overview").innerHTML = `
+    <div class="overview-item"><h4>Typical Cycle</h4><p>${tier.cycle}</p></div>
+    <div class="overview-item"><h4>Stakeholders</h4><p>${tier.stakeholders}</p></div>
+    <div class="overview-item"><h4>Qualification</h4><p>${tier.framework}</p></div>
+    <div class="overview-item"><h4>Pursuit Team</h4><p>${tier.team}</p></div>
+    <div class="overview-item"><h4>Target Win Rate</h4><p>${tier.winRate}</p></div>
+  `;
+
+  document.getElementById("leftSidebar").innerHTML = `
+    <h3>${tier.left.title}</h3>
+    <ul>${tier.left.items.map(item => `<li>${item}</li>`).join("")}</ul>
+  `;
+
+  const stagesEl = document.getElementById("stages");
+  stagesEl.innerHTML = tier.stages.map((s, i) => {
+    const hasDetailed = s.sops && s.requirements;
+    let details = "";
+    if (hasDetailed) {
+      details = `
+        <div class="stage-details">
+          <strong>Standard Operating Procedures (SOPs):</strong>
+          <ul>${s.sops.map(sop => `<li>${sop}</li>`).join("")}</ul>
+          <strong>Requirements to Advance to Next Phase:</strong>
+          <ul>${s.requirements.map(req => `<li>${req}</li>`).join("")}</ul>
+        </div>
+      `;
+    } else {
+      details = `
+        <div class="stage-details">
+          <strong>Key Activities:</strong>
+          <ul>${(s.activities || []).map(a => `<li>${a}</li>`).join("")}</ul>
+          <strong>Exit Criteria:</strong> ${s.exit || ""}
+        </div>
+      `;
+    }
+    return `
+      <div class="stage-card" onclick="this.classList.toggle('expanded')">
+        <div class="stage-number">${s.num}</div>
+        <h4>${s.name}</h4>
+        <div class="stage-summary">${s.summary}</div>
+        ${details}
+      </div>
+      ${i < tier.stages.length - 1 ? '<div class="arrow">→</div>' : ''}
+    `;
+  }).join("");
+
+  document.getElementById("rightSidebar").innerHTML = `
+    <h3>${tier.right.title}</h3>
+    <ul>${tier.right.items.map(item => `<li>${item}</li>`).join("")}</ul>
+    <h3 style="margin-top: 1.5rem;">Key Risks & Mitigations</h3>
+    <ul>${tier.risks.map(r => `<li>${r}</li>`).join("")}</ul>
+  `;
+}
+
+// Initialize with the $1B tier
+renderSelector();
+selectTier("billion");
+</script>
+</body>
+</html>
